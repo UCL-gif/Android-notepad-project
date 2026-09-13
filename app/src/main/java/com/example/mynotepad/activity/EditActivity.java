@@ -1,6 +1,5 @@
 package com.example.mynotepad.activity;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -11,7 +10,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -19,6 +17,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.mynotepad.NoteDBOpenHelper;
 import com.example.mynotepad.R;
+import com.example.mynotepad.Utils.AlertDialogUtils;
 import com.example.mynotepad.bean.Note;
 
 public class EditActivity extends AppCompatActivity implements View.OnClickListener {
@@ -83,19 +82,17 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         if (v.getId() == R.id.btn_delete) {
             //用AlertDialog对话框来提醒用户是否删除
-            AlertDialog.Builder builder = new AlertDialog.Builder(EditActivity.this);
-            builder.setTitle("删除记事");
-            builder.setMessage("确认删除该记事吗？");
-            builder.setPositiveButton("确认删除", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialog, int which) {
-                    deleteOneNote(mNote);
-                }
-            });
-            builder.setNegativeButton("我再想想", null);
-            AlertDialog alert = builder.create();
-            alert.show();
-
+            AlertDialogUtils.showDeleteAlertDialog(EditActivity.this,
+                    "删除记事",
+                    "确认删除该记事吗？",
+                    mNote,
+                    mHelper,
+                    new Runnable() {
+                        @Override
+                        public void run() {
+                            finish();
+                        }
+                    });
         } else {
             editOneNote();
         }
@@ -103,7 +100,7 @@ public class EditActivity extends AppCompatActivity implements View.OnClickListe
 
     private void deleteOneNote(Note note) {
         Log.d(TAG, "删除一条记事");
-        long result = mHelper.delete(note.getId());
+        long result = mHelper.deleteOneNote(note.getId());
         if (result > 0) {
             Toast.makeText(this, "删除成功！", Toast.LENGTH_SHORT).show();
             finish();

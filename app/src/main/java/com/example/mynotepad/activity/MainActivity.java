@@ -80,19 +80,20 @@ public class MainActivity extends AppCompatActivity {
         //搜索控件初始化并设置点击逻辑
         MenuItem searchItem = menu.findItem(R.id.menu_search);
         mSearchView = (SearchView) searchItem.getActionView();
-        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                mNotes = mHelper.queryByTitle(newText);
-                mAdapter.refresh(mNotes);
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
-        });
+        if (mSearchView != null) {
+            mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    mNotes = mHelper.queryByTitle(newText);
+                    mAdapter.refresh(mNotes);
+                    return true;
+                }
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+                    return false;
+                }
+            });
+        }
         return true;
     }
 
@@ -150,7 +151,6 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * 这个add方法是点击加号实现的，实现添加记事功能
-     * @param view
      */
     public void add(View view) {
         Intent intent = new Intent(this, AddActivity.class);

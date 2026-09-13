@@ -1,6 +1,8 @@
 package com.example.mynotepad.Adapter;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -11,16 +13,17 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.mynotepad.NoteDBOpenHelper;
 import com.example.mynotepad.R;
+import com.example.mynotepad.Utils.AlertDialogUtils;
 import com.example.mynotepad.activity.EditActivity;
 import com.example.mynotepad.bean.Note;
 
 import java.util.List;
 
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.myViewHolder> {
-    private Context mContext;
+    private final Context mContext;
     private List<Note> mNotes;
-    private LayoutInflater mLayoutInflater;
     public final int TYPE_LINEAR = 0;
     public final int TYPE_GRID = 1;
     private int mLayoutType = TYPE_LINEAR;
@@ -36,6 +39,11 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.myViewHolder> {
     }
 
     @Override
+    public int getItemCount() {
+        return mNotes == null ? 0 : mNotes.size();
+    }
+
+    @Override
     public int getItemViewType(int position) {
         return mLayoutType;
     }
@@ -44,7 +52,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.myViewHolder> {
     @Override
 
     public MyAdapter.myViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        mLayoutInflater = LayoutInflater.from(mContext);    //布局膨胀器初始化需要获得context
+        LayoutInflater layoutInflater = LayoutInflater.from(mContext);    //布局膨胀器初始化需要获得context
 
         int layoutId;
         if (viewType == TYPE_LINEAR) {
@@ -53,7 +61,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.myViewHolder> {
             layoutId = R.layout.item_grid_layout;
         }
 
-        View view = mLayoutInflater.inflate(layoutId, parent, false);
+        View view = layoutInflater.inflate(layoutId, parent, false);
         return new myViewHolder(view);
     }
 
@@ -73,11 +81,41 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.myViewHolder> {
                 mContext.startActivity(intent);
             }
         });
-    }
-
-    @Override
-    public int getItemCount() {
-        return mNotes == null ? 0 : mNotes.size();
+        holder.mContainer.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                String[] items = {"编辑记事", "删除记事"};
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                builder.setTitle("请选择操作");
+                builder.setItems(items, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (which == 0) {
+                            //跳转
+                            Intent intent = new Intent(mContext, EditActivity.class);
+                            Bundle bundle = new Bundle();
+                            bundle.putSerializable("note", note);
+                            intent.putExtras(bundle);
+                            mContext.startActivity(intent);
+                        } else if (which == 1) {
+                            //删除
+                            NoteDBOpenHelper helper = new NoteDBOpenHelper(mContext);
+                            AlertDialogUtils.showDeleteAlertDialog(mContext, "确认删除？", null, note, helper, new Runnable() {
+                                //删除成功后执行的代码
+                                @Override
+                                public void run() {
+                                    mNotes = helper.queryAllFromDb();
+                                    refresh(mNotes);
+                                }
+                            });
+                        }
+                    }
+                });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+                return true;
+            }
+        });
     }
 
     public void refresh(List<Note> notes) {

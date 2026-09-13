@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 import androidx.annotation.Nullable;
 
@@ -25,8 +24,7 @@ public class NoteDBOpenHelper extends SQLiteOpenHelper {
             "content TEXT," +
             "create_time TEXT" +
             ")";
-    private List<Note> mNotes;
-    private static final String TAG = "NoteDBOpenHelper";
+
 
 
 
@@ -95,7 +93,7 @@ public class NoteDBOpenHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_NAME, null, values);
     }
 
-    public long delete(int id) {
+    public long deleteOneNote(int id) {
         SQLiteDatabase db = getWritableDatabase();
         return db.delete(TABLE_NAME, "id = ? ", new String[]{String.valueOf(id)});
     }
