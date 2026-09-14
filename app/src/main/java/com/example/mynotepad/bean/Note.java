@@ -7,6 +7,7 @@ public class Note implements Serializable {
     private String title;
     private String Content;
     private String createTime;
+    private boolean isTop;
 
     public int getId() {
         return id;
@@ -38,5 +39,13 @@ public class Note implements Serializable {
 
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
+    }
+
+    public void setIsTop(boolean isTop) {
+        this.isTop = isTop;
+    }
+
+    public boolean getIsTop() {
+        return isTop;
     }
 }

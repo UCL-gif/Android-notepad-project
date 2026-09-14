@@ -16,14 +16,16 @@ import java.util.List;
 
 public class NoteDBOpenHelper extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "myDatabaseForNote.db";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
     private static final String TABLE_NAME = "myNote";
     private static final String CREATE_TABLE_FOR_NOTE = "create table " + TABLE_NAME + "(" +
             "id INTEGER PRIMARY KEY AUTOINCREMENT," +
             "title TEXT," +
             "content TEXT," +
-            "create_time TEXT" +
+            "create_time TEXT," +
+            "is_top" +
             ")";
+
 
 
 
@@ -39,6 +41,7 @@ public class NoteDBOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("alter table " + TABLE_NAME + " add column is_top integer default 0");
 
     }
 
@@ -55,13 +58,14 @@ public class NoteDBOpenHelper extends SQLiteOpenHelper {
                 null,
                 null,
                 null,
-                "id ASC");
+                "is_top DESC, create_time DESC");
         while (cursor.moveToNext()) {
             //定义变量来存放cursor找到的数据
             int id = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
             String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
             String content = cursor.getString(cursor.getColumnIndexOrThrow("content"));
             String createTime = cursor.getString(cursor.getColumnIndexOrThrow("create_time"));
+            int isTop = cursor.getInt(cursor.getColumnIndexOrThrow("is_top"));
 
             //设置好一个Note对象的数据
             Note note = new Note();
@@ -69,6 +73,7 @@ public class NoteDBOpenHelper extends SQLiteOpenHelper {
             note.setTitle(title);
             note.setContent(content);
             note.setCreateTime(createTime);
+            note.setIsTop(isTop == 1);
             //放到List列表中
             noteList.add(note);
 
@@ -109,6 +114,19 @@ public class NoteDBOpenHelper extends SQLiteOpenHelper {
                 new String[]{String.valueOf(note.getId())});
     }
 
+    /**
+     * 该方法用来设置某条记事是否置顶
+     * @param id    就是当前记事的id
+     * @param isTop 0为取消置顶，1为置顶
+     * @return      返回执行结果
+     */
+    public void updateTop(int id, int isTop) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("is_top", isTop);
+        db.update(TABLE_NAME, values, "id = ?", new String[]{String.valueOf(id)});
+    }
+
     public List<Note> queryByTitle(String keyword) {
         SQLiteDatabase db = getWritableDatabase();
         List<Note> notes = new ArrayList<>();
@@ -119,7 +137,7 @@ public class NoteDBOpenHelper extends SQLiteOpenHelper {
                 new String[]{"%" + keyword + "%"},
                 null,
                 null,
-                "id ASC");
+                "is_top DESC, create_time DESC");
 
         while (cursor.moveToNext()) {
             //定义变量来存放cursor找到的数据
@@ -127,6 +145,7 @@ public class NoteDBOpenHelper extends SQLiteOpenHelper {
             String title = cursor.getString(cursor.getColumnIndexOrThrow("title"));
             String content = cursor.getString(cursor.getColumnIndexOrThrow("content"));
             String createTime = cursor.getString(cursor.getColumnIndexOrThrow("create_time"));
+            int isTop = cursor.getInt(cursor.getColumnIndexOrThrow("is_top"));
 
             //设置好一个Note对象的数据
             Note note = new Note();
@@ -134,6 +153,7 @@ public class NoteDBOpenHelper extends SQLiteOpenHelper {
             note.setTitle(title);
             note.setContent(content);
             note.setCreateTime(createTime);
+            note.setIsTop(isTop == 1);
             //放到List列表中
             notes.add(note);
         }

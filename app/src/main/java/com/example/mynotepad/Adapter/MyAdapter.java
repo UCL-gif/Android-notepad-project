@@ -84,22 +84,34 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.myViewHolder> {
         holder.mContainer.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                String[] items = {"编辑记事", "删除记事"};
+                //先读取note是否为置顶状态，再显示文本操作
+                String[] items = {"置顶该记事", "删除该记事"};
+                items[0] = note.getIsTop() ? "取消置顶" : "置顶该记事";
+
                 AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
                 builder.setTitle("请选择操作");
                 builder.setItems(items, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        NoteDBOpenHelper helper = new NoteDBOpenHelper(mContext);
+
                         if (which == 0) {
-                            //跳转
-                            Intent intent = new Intent(mContext, EditActivity.class);
-                            Bundle bundle = new Bundle();
-                            bundle.putSerializable("note", note);
-                            intent.putExtras(bundle);
-                            mContext.startActivity(intent);
+                            //置顶或取消置顶某个记事
+                            //如果在顶上
+                            if (note.getIsTop()) {
+                                note.setIsTop(false);
+                                helper.updateTop(note.getId(), 0);
+                                mNotes = helper.queryAllFromDb();
+                                refresh(mNotes);
+                            } else {
+                                note.setIsTop(true);
+                                helper.updateTop(note.getId(), 1);
+                                mNotes = helper.queryAllFromDb();
+                                refresh(mNotes);
+                            }
                         } else if (which == 1) {
                             //删除
-                            NoteDBOpenHelper helper = new NoteDBOpenHelper(mContext);
+
                             AlertDialogUtils.showDeleteAlertDialog(mContext, "确认删除？", null, note, helper, new Runnable() {
                                 //删除成功后执行的代码
                                 @Override
