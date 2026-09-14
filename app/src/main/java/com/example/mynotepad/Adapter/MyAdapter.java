@@ -8,9 +8,12 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mynotepad.NoteDBOpenHelper;
@@ -18,6 +21,7 @@ import com.example.mynotepad.R;
 import com.example.mynotepad.Utils.AlertDialogUtils;
 import com.example.mynotepad.activity.EditActivity;
 import com.example.mynotepad.bean.Note;
+import com.google.android.material.card.MaterialCardView;
 
 import java.util.List;
 
@@ -71,7 +75,17 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.myViewHolder> {
         holder.mTitle.setText(note.getTitle());
         holder.mContent.setText(note.getContent());
         holder.mCreateTime.setText(note.getCreateTime());
-        holder.mContainer.setOnClickListener(new View.OnClickListener() {
+        //设置置顶状态
+        if (note.getIsTop()) {
+            holder.mPinnedIcon.setVisibility(View.VISIBLE);
+            int color = ContextCompat.getColor(mContext, R.color.pinned);
+            holder.mMaterialCardView.setCardBackgroundColor(color);
+        } else {
+            holder.mPinnedIcon.setVisibility(View.GONE);
+            int color = ContextCompat.getColor(mContext, R.color.normal);
+            holder.mMaterialCardView.setCardBackgroundColor(color);
+        }
+        holder.mMaterialCardView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(mContext, EditActivity.class);
@@ -81,7 +95,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.myViewHolder> {
                 mContext.startActivity(intent);
             }
         });
-        holder.mContainer.setOnLongClickListener(new View.OnLongClickListener() {
+        holder.mMaterialCardView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 //先读取note是否为置顶状态，再显示文本操作
@@ -128,6 +142,24 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.myViewHolder> {
                 return true;
             }
         });
+        holder.mIsPinned.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(mContext, "点击了置顶按钮", Toast.LENGTH_SHORT).show();
+            }
+        });
+        holder.mTodo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(mContext, "点击了待办按钮", Toast.LENGTH_SHORT).show();
+            }
+        });
+        holder.mDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(mContext, "点击了删除按钮", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     public void refresh(List<Note> notes) {
@@ -135,18 +167,33 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.myViewHolder> {
         notifyDataSetChanged();
     }
 
+    public void removeItem(int positon) {
+        NoteDBOpenHelper helper = new NoteDBOpenHelper(mContext);
+        Note note = mNotes.get(positon);
+        helper.deleteOneNote(note.getId());
+        mNotes.remove(positon);
+        notifyItemRemoved(positon);
+        Toast.makeText(mContext, "删除成功！", Toast.LENGTH_SHORT).show();
+    }
     public class myViewHolder extends RecyclerView.ViewHolder {
         TextView mTitle;
         TextView mContent;
         TextView mCreateTime;
-        ViewGroup mContainer;
-
+        ImageView mPinnedIcon;
+        MaterialCardView mMaterialCardView;
+        TextView mIsPinned;
+        TextView mTodo;
+        TextView mDelete;
         public myViewHolder(@NonNull View itemView) {
             super(itemView);
             this.mTitle = itemView.findViewById(R.id.title);
             this.mContent = itemView.findViewById(R.id.content);
             this.mCreateTime= itemView.findViewById(R.id.create_time);
-            this.mContainer= itemView.findViewById(R.id.container);
+            this.mMaterialCardView = itemView.findViewById(R.id.foreground_card);
+            this.mPinnedIcon = itemView.findViewById(R.id.iv_pinned);
+            this.mIsPinned = itemView.findViewById(R.id.fl_tv_pinned);
+            this.mTodo = itemView.findViewById(R.id.fl_tv_todo);
+            this.mDelete = itemView.findViewById(R.id.fl_tv_delete);
         }
     }
 }

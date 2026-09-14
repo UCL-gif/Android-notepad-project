@@ -23,7 +23,7 @@ public class NoteDBOpenHelper extends SQLiteOpenHelper {
             "title TEXT," +
             "content TEXT," +
             "create_time TEXT," +
-            "is_top" +
+            "is_top INTEGER DEFAULT 0" +
             ")";
 
 

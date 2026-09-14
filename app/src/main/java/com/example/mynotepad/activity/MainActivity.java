@@ -14,10 +14,12 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.mynotepad.Adapter.MyAdapter;
+import com.example.mynotepad.MyCallBack;
 import com.example.mynotepad.NoteDBOpenHelper;
 import com.example.mynotepad.R;
 import com.example.mynotepad.Utils.SpfUtils;
@@ -33,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private List<Note> mNotes;
     NoteDBOpenHelper mHelper;
     private SearchView mSearchView;
+    private MyCallBack mMyCallBack;
 
 
     @Override
@@ -47,6 +50,14 @@ public class MainActivity extends AppCompatActivity {
         });
         initData();
         initView();
+        initCallBack();
+
+    }
+
+    private void initCallBack() {
+        mMyCallBack = new MyCallBack(0, ItemTouchHelper.LEFT, mAdapter);
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(mMyCallBack);
+        itemTouchHelper.attachToRecyclerView(mRecyclerView);
     }
 
     @Override
@@ -62,9 +73,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshFromDbByTitle() {
-        mNotes = mHelper.queryByTitle(mSearchView.getQuery().toString());
-        mAdapter.refresh(mNotes);
-
+        List<Note> newList = mHelper.queryByTitle(mSearchView.getQuery().toString());
+        mAdapter.refresh(newList);
     }
 
     @Override
@@ -120,6 +130,7 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
 
     private void refreshFromDb() {
         mNotes = mHelper.queryAllFromDb();
